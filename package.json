@@ -14,18 +14,19 @@
     "@types/bun": "latest",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.5.0"
+    "autoprefixer": "^10.5.0",
+    "playwright": "^1.59.1",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
     "bcryptjs": "^3.0.3",
-    "daisyui": "^5.5.19",
+    "daisyui": "^4.12.10",
     "jsonwebtoken": "^9.0.3",
     "next": "^16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "sqlite3": "^6.0.1",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^3.4.1",
     "uuid": "^13.0.0"
   }
 }

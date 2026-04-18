@@ -1,7 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../../data.db');
+// 使用绝对路径确保能找到数据库文件
+const dbPath = path.resolve(process.cwd(), 'data.db');
+console.log('Database path:', dbPath);
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);

@@ -66,6 +66,16 @@ class Growth {
       });
     });
   }
+
+  static async findAll() {
+    const sql = 'SELECT * FROM growth_indicators';
+    return new Promise((resolve, reject) => {
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
 }
 
 module.exports = Growth;

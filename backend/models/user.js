@@ -52,6 +52,16 @@ class User {
       });
     });
   }
+
+  static async findAll() {
+    const sql = 'SELECT * FROM users';
+    return new Promise((resolve, reject) => {
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
 }
 
 module.exports = User;

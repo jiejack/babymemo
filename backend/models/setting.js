@@ -46,6 +46,16 @@ class Setting {
       });
     });
   }
+
+  static async findAll() {
+    const sql = 'SELECT * FROM settings';
+    return new Promise((resolve, reject) => {
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
 }
 
 module.exports = Setting;

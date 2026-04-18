@@ -52,6 +52,16 @@ class Baby {
       });
     });
   }
+
+  static async findAll() {
+    const sql = 'SELECT * FROM babies';
+    return new Promise((resolve, reject) => {
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
 }
 
 module.exports = Baby;
