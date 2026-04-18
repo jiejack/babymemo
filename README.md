@@ -1,116 +1,131 @@
 # BabyMemo - 宝宝成长记录系统
 
-## 项目简介
+一个基于React + Next.js的宝宝成长记录系统，帮助父母记录宝宝的成长历程。
 
-BabyMemo是一个专为父母设计的宝宝成长记录系统，帮助记录宝宝的成长历程、照片、视频、日记、里程碑等重要时刻。
+## ✨ 功能特性
 
-## 技术栈
+- 🎨 **现代化界面** - 基于Tailwind CSS的响应式设计
+- 🔒 **用户系统** - 登录/注册功能（模拟登录，无需后端）
+- 📷 **照片墙** - 记录宝宝的美好瞬间
+- 📝 **创意日记** - 写下宝宝的成长故事
+- 📅 **创意日历** - 记录重要的成长里程碑
+- ⏰ **时光轴** - 可视化宝宝的成长历程
+- 👶 **宝宝管理** - 管理宝宝信息
+- 📊 **成长指标** - 追踪宝宝的身高、体重等指标
+- 🎥 **视频管理** - 存储宝宝的成长视频
+- ⚙️ **设置中心** - 个性化系统设置
+- 🔄 **登录状态持久化** - 刷新后保持登录状态
 
-- **前端**：React + Next.js + Tailwind CSS + daisyUI
-- **后端**：Node.js + SQLite
-- **认证**：JWT
-- **构建工具**：Bun
-- **测试**：自定义测试脚本
-
-## 核心功能
-
-- 📸 照片管理：上传、分类、标签管理
-- 🎥 视频管理：上传、预览、分类
-- 📝 成长日记：记录宝宝的日常趣事
-- 📅 成长日历：重要事件和里程碑
-- 📊 成长指标：身高、体重等数据跟踪
-- 👶 宝宝档案：基本信息管理
-- 🔐 用户认证：安全的登录和注册
-
-## 快速开始
+## 🚀 快速开始
 
 ### 环境要求
 
-- Node.js 18+
-- Bun 1.2+
+- Node.js 18.0+
+- npm 9.0+
 
 ### 安装步骤
 
-1. **克隆仓库**
-   ```bash
-   git clone <仓库地址>
-   cd babymemo
-   ```
+1. **克隆项目**
+
+```bash
+git clone <repository-url>
+cd babymemo
+```
 
 2. **安装依赖**
-   ```bash
-   bun install
-   ```
 
-3. **初始化数据库**
-   ```bash
-   bun run init-db.js
-   ```
+```bash
+npm install
+```
 
-4. **启动开发服务器**
-   ```bash
-   bun run dev
-   ```
+3. **启动开发服务器**
 
-5. **访问应用**
-   打开浏览器访问：http://localhost:3000
+```bash
+npm run dev
+```
 
-## 项目结构
+4. **访问应用**
+
+打开浏览器访问：http://localhost:3000
+
+## 🔐 登录信息
+
+**演示账号：**
+- 用户名：demo
+- 密码：demo123
+
+## 📁 项目结构
 
 ```
 babymemo/
-├── app/             # Next.js App Router API路由
-├── pages/           # Next.js Pages Router页面
-├── components/      # 前端组件
-├── backend/         # 后端代码
-│   ├── api/         # API接口
-│   ├── database/    # 数据库连接
-│   └── models/      # 数据模型
-├── services/        # 服务层
-├── styles/          # 样式文件
-├── docs/            # 文档目录
-├── test/            # 测试文件
-├── data.db          # SQLite数据库
-└── package.json     # 项目配置
+├── components/          # 组件目录
+│   └── common/          # 通用组件
+├── pages/              # 页面目录
+│   ├── _app.js         # 应用入口
+│   ├── index.js        # 登录页面
+│   ├── dashboard.js    # 仪表盘
+│   ├── photos.js       # 照片墙
+│   ├── diaries.js      # 创意日记
+│   ├── calendar.js     # 创意日历
+│   ├── timeline.js     # 时光轴
+│   ├── babies.js       # 宝宝管理
+│   ├── growth.js       # 成长指标
+│   ├── videos.js       # 视频管理
+│   └── settings.js     # 设置页面
+├── services/           # 服务目录
+│   ├── api.js          # API服务
+│   └── auth.js         # 认证服务
+├── public/             # 静态资源
+├── docs/               # 文档目录
+├── package.json        # 项目配置
+└── README.md           # 项目说明
 ```
 
-## 测试
+## 📚 技术栈
 
-### 数据库连接测试
-```bash
-bun run test_db_connection.js
-```
+- **前端框架**：React + Next.js
+- **样式框架**：Tailwind CSS
+- **状态管理**：React Context API
+- **数据存储**：LocalStorage / SessionStorage
+- **构建工具**：Next.js Build
 
-### API连接测试
-```bash
-bun run test_api_connection.js
-```
+## 🎯 使用指南
 
-### 综合测试
-```bash
-bun run test_comprehensive_improved.js
-```
+### 登录系统
+1. 访问 http://localhost:3000
+2. 输入演示账号：demo/demo123
+3. 点击「登录」按钮
 
-## 部署
+### 功能使用
+- **照片墙**：查看和管理宝宝照片
+- **创意日记**：记录宝宝的成长故事
+- **创意日历**：在日历上标记重要事件
+- **时光轴**：查看宝宝的成长里程碑
+- **宝宝管理**：添加和管理宝宝信息
+- **成长指标**：记录和查看宝宝的成长数据
+- **视频管理**：上传和管理宝宝视频
+- **设置**：个性化系统设置
 
-### 构建生产版本
-```bash
-bun run build
-```
+## 🌟 特点
 
-### 启动生产服务器
-```bash
-bun start
-```
+- **无后端依赖**：使用LocalStorage存储数据，无需后端服务
+- **完全中文**：界面和内容完全中文显示
+- **演示数据**：所有功能都预置了演示数据
+- **响应式设计**：支持不同设备访问
+- **用户友好**：直观的界面设计，易于使用
 
-## 文档
+## 🤝 贡献
 
-详细文档请查看 [docs](./docs) 目录。
+欢迎提交Issue和Pull Request来改进这个项目！
 
-## 贡献
-
-欢迎提交Issue和Pull Request！
-
-## 许可证
+## 📄 许可证
 
 MIT License
+
+## 📞 支持
+
+如果有任何问题或建议，请随时联系我们。
+
+---
+
+**BabyMemo - 记录宝宝成长的每一个瞬间** 🎉
