@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next export"
+    "export": "next export",
+    "electron:dev": "ELECTRON_START_URL=http://localhost:3000 electron electron/main.js",
+    "electron:build": "cd electron && npm run build"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -15,11 +17,15 @@
     "autoprefixer": "^10.5.0"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "bcryptjs": "^3.0.3",
     "daisyui": "^5.5.19",
+    "jsonwebtoken": "^9.0.3",
     "next": "^16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "sqlite3": "^6.0.1",
-    "tailwindcss": "^4.2.2"
+    "tailwindcss": "^4.2.2",
+    "uuid": "^13.0.0"
   }
 }
