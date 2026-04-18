@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
-import { api } from '../services/api';
 
 export default function Babies() {
   const [babies, setBabies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchBabies = async () => {
-      try {
-        setLoading(true);
-        const response = await api.baby.getAll();
-        setBabies(response.data);
-      } catch (error) {
-        setError('获取宝宝信息失败');
-        console.error('获取宝宝信息失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBabies();
+    setLoading(false);
   }, []);
+
+  const handleAddDemoBaby = () => {
+    const newBaby = {
+      id: Date.now(),
+      name: '演示宝宝',
+      gender: '男',
+      birthDate: new Date().toISOString(),
+      avatar: 'https://via.placeholder.com/100?text=Baby',
+      height: 50,
+      weight: 3.5,
+      notes: ''
+    };
+    setBabies(prev => [...prev, newBaby]);
+  };
 
   if (loading) {
     return (
@@ -34,24 +33,16 @@ export default function Babies() {
     );
   }
 
-  if (error) {
-    return (
-      <Layout>
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-          <strong className="font-bold">错误：</strong>
-          <span className="block sm:inline"> {error}</span>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">宝宝管理</h1>
         <div className="flex justify-end mb-4">
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-            添加宝宝
+          <button 
+            onClick={handleAddDemoBaby}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            添加演示宝宝
           </button>
         </div>
       </div>
@@ -59,7 +50,7 @@ export default function Babies() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {babies.length === 0 ? (
           <div className="col-span-full bg-white rounded-lg shadow p-8 text-center">
-            <p className="text-gray-500">暂无宝宝信息，点击添加宝宝按钮开始添加</p>
+            <p className="text-gray-500">暂无宝宝信息，点击添加演示宝宝按钮开始</p>
           </div>
         ) : (
           babies.map((baby) => (
@@ -72,7 +63,7 @@ export default function Babies() {
                   <div className="ml-4">
                     <h3 className="text-xl font-medium text-gray-900">{baby.name}</h3>
                     <p className="text-sm text-gray-500">
-                      出生日期: {new Date(baby.birthday).toLocaleDateString()}
+                      出生日期: {new Date(baby.birthDate).toLocaleDateString()}
                     </p>
                     <p className="text-sm text-gray-500">
                       性别: {baby.gender || '未设置'}

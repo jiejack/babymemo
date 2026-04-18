@@ -1,49 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '../components/common/Layout';
-import { api } from '../services/api';
 
 export default function Videos() {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [videos, setVideos] = useState([
+    { id: 1, title: '宝宝第一次笑', date: '2024-02-20', duration: 15 },
+    { id: 2, title: '学翻身', date: '2024-03-10', duration: 25 },
+    { id: 3, title: '吃辅食第一天', date: '2024-04-05', duration: 45 }
+  ]);
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        setLoading(true);
-        const response = await api.video.getAll();
-        setVideos(response.data);
-      } catch (error) {
-        setError('获取视频失败');
-        console.error('获取视频失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVideos();
-  }, []);
-
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout>
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-          <strong className="font-bold">错误：</strong>
-          <span className="block sm:inline"> {error}</span>
-        </div>
-      </Layout>
-    );
-  }
+  const handleDeleteVideo = (id) => {
+    setVideos(videos.filter(v => v.id !== id));
+  };
 
   return (
     <Layout>
@@ -65,21 +32,13 @@ export default function Videos() {
           videos.map((video) => (
             <div key={video.id} className="bg-white rounded-lg shadow overflow-hidden">
               <div className="aspect-w-16 aspect-h-9">
-                <div className="relative w-full h-full bg-gray-100 flex items-center justify-center">
-                  {video.thumbnail ? (
-                    <img 
-                      src={video.thumbnail} 
-                      alt={video.title} 
-                      className="object-cover w-full h-full"
-                    />
-                  ) : (
-                    <div className="text-gray-400">
-                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                  )}
+                <div className="relative w-full h-48 bg-gray-100 flex items-center justify-center">
+                  <div className="text-gray-400">
+                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <button className="w-12 h-12 rounded-full bg-blue-500 bg-opacity-80 flex items-center justify-center text-white">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +62,12 @@ export default function Videos() {
                 </div>
                 <div className="mt-2 flex space-x-2">
                   <button className="text-blue-500 hover:text-blue-700 text-sm">编辑</button>
-                  <button className="text-red-500 hover:text-red-700 text-sm">删除</button>
+                  <button 
+                    onClick={() => handleDeleteVideo(video.id)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    删除
+                  </button>
                 </div>
               </div>
             </div>

@@ -19,47 +19,21 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const url = isLogin ? '/api/users/login' : '/api/users/register';
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(isLogin ? { username, password } : { username, password, name })
-      });
-
-      const data = await response.json();
-
-      if (data.status === 'error') {
-        setError(data.message);
-      } else {
-        if (isLogin) {
-            // 处理登录响应
-            if (data.data && data.data.token) {
-              login(data.data.user, data.data.token);
-              router.push('/dashboard');
-            } else {
-              setError('登录响应格式错误');
-            }
-          } else {
-            // 注册成功后自动登录
-            const loginResponse = await fetch('/api/users/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ username, password })
-            });
-
-            const loginData = await loginResponse.json();
-            if (loginData.status === 'success' && loginData.data && loginData.data.token) {
-              login(loginData.data.user, loginData.data.token);
-              router.push('/dashboard');
-            } else {
-              setError('自动登录失败');
-            }
-          }
-      }
+      // 模拟登录/注册，不依赖后端API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const mockUser = {
+        id: 1,
+        username: username,
+        name: name || username,
+        avatar: null
+      };
+      
+      const mockToken = 'mock-token-' + Date.now();
+      
+      login(mockUser, mockToken);
+      // 移除手动导航，让路由保护来处理导航
+      // router.push('/dashboard');
     } catch (error) {
       setError('服务器错误，请稍后再试');
       console.error('Auth error:', error);

@@ -7,7 +7,7 @@ const authService = {
     try {
       const response = await api.user.login({ username, password });
       if (response.status === 'success') {
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('token', response.data.token);
         return response.data;
       }
       throw new Error(response.message);
@@ -28,7 +28,7 @@ const authService = {
           password: userData.password
         });
         if (loginResponse.status === 'success') {
-          localStorage.setItem('token', loginResponse.token);
+          localStorage.setItem('token', loginResponse.data.token);
           return loginResponse.data;
         }
       }

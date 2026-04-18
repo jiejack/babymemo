@@ -1,32 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
-import { api } from '../services/api';
-import PhotoUpload from '../components/photos/PhotoUpload';
 
 export default function Photos() {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        setLoading(true);
-        const response = await api.photo.getAll();
-        setPhotos(response.data);
-      } catch (error) {
-        setError('获取照片失败');
-        console.error('获取照片失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPhotos();
+    setLoading(false);
   }, []);
 
-  const handleUpload = (newPhoto) => {
+  const handleAddDemoPhoto = () => {
+    const newPhoto = {
+      id: Date.now(),
+      title: '演示照片',
+      url: 'https://via.placeholder.com/400',
+      date: new Date().toISOString()
+    };
     setPhotos(prev => [newPhoto, ...prev]);
   };
 
@@ -57,10 +47,10 @@ export default function Photos() {
         <h1 className="text-2xl font-bold text-gray-800 mb-4">照片墙</h1>
         <div className="flex justify-end mb-4">
           <button 
-            onClick={() => setShowUploadModal(true)}
+            onClick={handleAddDemoPhoto}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
-            上传照片
+            添加演示照片
           </button>
         </div>
       </div>
@@ -68,7 +58,7 @@ export default function Photos() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {photos.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <p className="text-gray-500">暂无照片，点击上传按钮添加照片</p>
+            <p className="text-gray-500">暂无照片，点击添加演示照片按钮开始</p>
           </div>
         ) : (
           photos.map((photo) => (
@@ -92,13 +82,6 @@ export default function Photos() {
           ))
         )}
       </div>
-
-      {showUploadModal && (
-        <PhotoUpload 
-          onUpload={handleUpload} 
-          onClose={() => setShowUploadModal(false)} 
-        />
-      )}
     </Layout>
   );
 }

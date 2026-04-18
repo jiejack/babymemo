@@ -45,7 +45,7 @@ export const api = {
   // 用户相关
   user: {
     login: (credentials) => request('/users/login', { method: 'POST', body: JSON.stringify(credentials) }),
-    register: (userData) => request('/users/register', { method: 'POST', body: JSON.stringify(userData) }),
+    register: (userData) => request('/users', { method: 'POST', body: JSON.stringify(userData) }),
     getMe: () => request('/users/me'),
     updateMe: (userData) => request('/users/me', { method: 'PUT', body: JSON.stringify(userData) }),
     changePassword: (passwordData) => request('/users/password', { method: 'PUT', body: JSON.stringify(passwordData) })

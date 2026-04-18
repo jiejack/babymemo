@@ -2,49 +2,35 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { AppContext } from './_app';
 import Layout from '../components/common/Layout';
-import { api } from '../services/api';
 
 export default function Dashboard() {
   const { user } = useContext(AppContext);
   const router = useRouter();
-  const [recentPhotos, setRecentPhotos] = useState([]);
-  const [recentDiaries, setRecentDiaries] = useState([]);
-  const [recentMilestones, setRecentMilestones] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [recentPhotos, setRecentPhotos] = useState([
+    { id: 1, title: '宝宝第一次笑', url: 'https://via.placeholder.com/200', date: '2024-02-20' },
+    { id: 2, title: '学翻身', url: 'https://via.placeholder.com/200', date: '2024-03-10' },
+    { id: 3, title: '吃辅食', url: 'https://via.placeholder.com/200', date: '2024-04-05' },
+    { id: 4, title: '公园游玩', url: 'https://via.placeholder.com/200', date: '2024-04-15' },
+    { id: 5, title: '生日派对', url: 'https://via.placeholder.com/200', date: '2024-05-01' },
+    { id: 6, title: '亲子时光', url: 'https://via.placeholder.com/200', date: '2024-05-10' }
+  ]);
+  const [recentDiaries, setRecentDiaries] = useState([
+    { id: 1, title: '宝宝会叫妈妈了', content: '今天宝宝第一次清晰地叫了妈妈，我激动得哭了。这是最美好的声音。', date: '2024-05-15', mood: '开心' },
+    { id: 2, title: '第一次爬', content: '宝宝今天终于会爬了，虽然只是一点点距离，但这是成长的重要一步。', date: '2024-05-10', mood: '兴奋' },
+    { id: 3, title: '睡眠改善', content: '最近宝宝的睡眠质量好多了，晚上只醒一次，我也能多睡会儿了。', date: '2024-05-05', mood: '平静' }
+  ]);
+  const [recentMilestones, setRecentMilestones] = useState([
+    { id: 1, title: '第一次翻身', description: '宝宝在5个月零2天的时候成功翻身了！', date: '2024-03-10', type: '运动' },
+    { id: 2, title: '出牙', description: '宝宝的第一颗乳牙冒出来了，小小的白点点。', date: '2024-04-20', type: '发育' },
+    { id: 3, title: '会坐', description: '宝宝可以独立坐着了，不用支撑能坐好几分钟。', date: '2024-05-01', type: '运动' }
+  ]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
       router.push('/');
     }
   }, [user, router]);
-
-  useEffect(() => {
-    if (user) {
-      fetchRecentMemories();
-    }
-  }, [user]);
-
-  const fetchRecentMemories = async () => {
-    try {
-      setLoading(true);
-      
-      // 获取最近的照片
-      const photosResponse = await api.photo.getAll({ limit: 6 });
-      setRecentPhotos(photosResponse.data || []);
-      
-      // 获取最近的日记
-      const diariesResponse = await api.diary.getAll({ limit: 3 });
-      setRecentDiaries(diariesResponse.data || []);
-      
-      // 获取最近的里程碑
-      const milestonesResponse = await api.milestone.getAll({ limit: 3 });
-      setRecentMilestones(milestonesResponse.data || []);
-    } catch (error) {
-      console.error('获取最近记忆失败:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
