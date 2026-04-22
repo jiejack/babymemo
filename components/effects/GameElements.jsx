@@ -161,13 +161,13 @@ export const LevelUpAnimation = ({ isActive, level, onComplete }) => {
   
   return (
     <motion.div 
-      className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+      className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none bg-black/50 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div
-        className="text-center"
+        className="text-center bg-gradient-to-br from-purple-900/90 to-pink-900/90 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl max-w-md w-full"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, type: 'spring' }}
@@ -192,14 +192,161 @@ export const LevelUpAnimation = ({ isActive, level, onComplete }) => {
           等级提升！
         </motion.h2>
         <motion.p 
-          className="text-xl md:text-2xl text-yellow-300 font-bold"
+          className="text-xl md:text-2xl text-yellow-300 font-bold mb-4"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           现在是 Lv.{level}！
         </motion.p>
+        <motion.div
+          className="text-white/80 text-sm mb-6"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          恭喜你升级了！解锁了新的游戏内容和功能。
+        </motion.div>
+        <motion.button
+          className="bg-gradient-to-r from-purple-600 to-pink-500 text-white font-bold py-3 px-6 rounded-full hover:shadow-xl transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+          onClick={onComplete}
+        >
+          继续冒险
+        </motion.button>
       </motion.div>
     </motion.div>
+  );
+};
+
+// 星星收集动画组件
+export const StarCollectionAnimation = ({ isActive, count, onComplete }) => {
+  if (!isActive) return null;
+  
+  return (
+    <motion.div className="fixed inset-0 pointer-events-none z-40">
+      {Array.from({ length: count }).map((_, index) => (
+        <motion.div
+          key={index}
+          className="absolute text-yellow-300 text-2xl"
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight + 50,
+            opacity: 1,
+            scale: Math.random() * 0.5 + 0.5
+          }}
+          animate={{
+            y: -100,
+            opacity: 0,
+            scale: 1.5
+          }}
+          transition={{
+            duration: Math.random() * 1 + 1.5,
+            ease: 'easeOut',
+            delay: index * 0.1
+          }}
+        >
+          ⭐
+        </motion.div>
+      ))}
+      <motion.div
+        className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white/90 text-purple-900 px-4 py-2 rounded-full shadow-lg"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <span className="font-bold">+{count} 星星！</span>
+      </motion.div>
+      {setTimeout(onComplete, 2000)}
+    </motion.div>
+  );
+};
+
+// 游戏通知组件
+export const GameNotification = ({ isActive, message, type = 'info', onComplete }) => {
+  if (!isActive) return null;
+  
+  const typeConfig = {
+    info: { background: 'from-blue-500 to-cyan-400' },
+    success: { background: 'from-green-500 to-emerald-400' },
+    warning: { background: 'from-yellow-500 to-orange-400' },
+    error: { background: 'from-red-500 to-pink-400' }
+  };
+  
+  return (
+    <motion.div
+      className="fixed top-4 right-4 z-50"
+      initial={{ x: 400, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 400, opacity: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className={`bg-gradient-to-r ${typeConfig[type].background} text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-3 max-w-md`}
+        whileHover={{ scale: 1.02 }}
+        onAnimationComplete={onComplete}
+      >
+        <div className="text-xl">
+          {type === 'info' && 'ℹ️'}
+          {type === 'success' && '✅'}
+          {type === 'warning' && '⚠️'}
+          {type === 'error' && '❌'}
+        </div>
+        <div>
+          <p className="font-medium">{message}</p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// 游戏进度环组件
+export const GameProgressRing = ({ progress, size = 80, strokeWidth = 8, color = 'from-purple-500 to-pink-500' }) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+  
+  return (
+    <div className="relative">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* 背景圆环 */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* 进度圆环 */}
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={`url(#${color.replace(/[^a-z0-9]/g, '')})`}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeLinecap="round"
+          initial={{ strokeDasharray: circumference, strokeDashoffset: circumference }}
+          animate={{ strokeDasharray: circumference, strokeDashoffset: offset }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+        />
+        {/* 渐变定义 */}
+        <defs>
+          <linearGradient id={color.replace(/[^a-z0-9]/g, '')} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={color.split(' ')[0].replace('from-', '#')} />
+            <stop offset="100%" stopColor={color.split(' ')[1].replace('to-', '#')} />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-white font-bold text-lg">{Math.round(progress)}%</span>
+      </div>
+    </div>
   );
 };

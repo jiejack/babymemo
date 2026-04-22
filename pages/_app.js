@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import '../styles/globals.css';
+import { GameProvider } from '../context/GameContext';
 
 // 创建应用上下文
 export const AppContext = React.createContext();
@@ -141,9 +142,11 @@ function MyApp({ Component, pageProps }) {
   }
 
   return (
-    <AppContext.Provider value={{ user, login, logout }}>
-      <Component {...pageProps} />
-    </AppContext.Provider>
+    <GameProvider>
+      <AppContext.Provider value={{ user, login, logout }}>
+        <Component {...pageProps} />
+      </AppContext.Provider>
+    </GameProvider>
   );
 }
 

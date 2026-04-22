@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { GameProgressBar, GameButton, RewardAnimation } from '../effects/GameElements';
+import { useGame } from '../../context/GameContext';
 
 const TaskSystem = ({ tasks, onTaskComplete }) => {
   const [showReward, setShowReward] = useState(false);
   const [completedTask, setCompletedTask] = useState(null);
+  const { gameState, completeTask, completeDailyTask } = useGame();
 
   // 模拟任务数据
-  const defaultTasks = tasks || [
+  const defaultTasks = useMemo(() => tasks || [
     {
       id: 1,
       title: '上传第一张照片',
@@ -15,7 +17,7 @@ const TaskSystem = ({ tasks, onTaskComplete }) => {
       icon: '📸',
       status: 'completed',
       progress: 100,
-      reward: { stars: 5, badge: '摄影新手' }
+      reward: { stars: 5, experience: 20, badge: '摄影新手' }
     },
     {
       id: 2,
@@ -24,7 +26,7 @@ const TaskSystem = ({ tasks, onTaskComplete }) => {
       icon: '📚',
       status: 'in_progress',
       progress: 50,
-      reward: { stars: 8, badge: '故事讲述者' }
+      reward: { stars: 8, experience: 30, badge: '故事讲述者' }
     },
     {
       id: 3,
@@ -33,7 +35,7 @@ const TaskSystem = ({ tasks, onTaskComplete }) => {
       icon: '⭐',
       status: 'pending',
       progress: 0,
-      reward: { stars: 10, badge: '里程碑达人' }
+      reward: { stars: 10, experience: 40, badge: '里程碑达人' }
     },
     {
       id: 4,
@@ -42,17 +44,38 @@ const TaskSystem = ({ tasks, onTaskComplete }) => {
       icon: '🎥',
       status: 'pending',
       progress: 0,
-      reward: { stars: 12, badge: '视频大师' }
+      reward: { stars: 12, experience: 50, badge: '视频大师' }
+    },
+    {
+      id: 5,
+      title: '记录第一次成长测量',
+      description: '记录宝贝的身高体重',
+      icon: '📏',
+      status: 'pending',
+      progress: 0,
+      reward: { stars: 6, experience: 25, badge: '成长记录员' }
     }
-  ];
+  ], [tasks]);
 
   const handleTaskComplete = (taskId) => {
     const task = defaultTasks.find(t => t.id === taskId);
     setCompletedTask(task);
     setShowReward(true);
     
+    // 完成任务并获得奖励
+    completeTask(task);
+    
     if (onTaskComplete) {
       onTaskComplete(taskId);
+    }
+  };
+
+  const handleDailyTaskComplete = (taskId) => {
+    const task = gameState.dailyTasks.find(t => t.id === taskId);
+    if (task) {
+      setCompletedTask(task);
+      setShowReward(true);
+      completeDailyTask(taskId);
     }
   };
 
@@ -188,6 +211,80 @@ const TaskSystem = ({ tasks, onTaskComplete }) => {
         ))}
       </div>
       
+      {/* 每日任务 */}
+      <motion.div
+        className="mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-white flex items-center">
+            📅 每日任务
+          </h3>
+          <div className="bg-yellow-500/20 text-yellow-200 text-xs font-bold px-3 py-1 rounded-full">
+            {gameState.dailyTasks.filter(t => t.completed).length}/{gameState.dailyTasks.length} 完成
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          {gameState.dailyTasks.map((task, index) => (
+            <motion.div
+              key={task.id}
+              className={`rounded-xl p-4 border transition-all duration-300 ${task.completed ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/50' : 'bg-gradient-to-br from-gray-500/20 to-slate-500/20 border-gray-500/50'}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.4 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <motion.div
+                      className="text-2xl"
+                      animate={{ scale: task.completed ? [1, 1.2, 1] : 1 }}
+                      transition={{ duration: 1, repeat: task.completed ? 2 : 0 }}
+                    >
+                      {task.icon}
+                    </motion.div>
+                    <div>
+                      <h4 className="text-white font-medium mb-1">{task.title}</h4>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-yellow-300 font-bold text-sm flex items-center">
+                          {task.reward.stars} ⭐
+                        </div>
+                        <div className="text-blue-300 font-bold text-sm flex items-center">
+                          {task.reward.experience} EXP
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {!task.completed ? (
+                  <GameButton
+                    onClick={() => handleDailyTaskComplete(task.id)}
+                    variant="accent"
+                    size="small"
+                  >
+                    完成
+                  </GameButton>
+                ) : (
+                  <motion.div
+                    className="text-green-400 font-bold text-sm flex items-center"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring' }}
+                  >
+                    ✅ 已完成
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
       {/* 奖励动画 */}
       <RewardAnimation 
         isActive={showReward} 

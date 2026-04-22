@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { AppContext } from './_app';
+import { useGame } from '../context/GameContext';
 import { api } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,14 +18,22 @@ import {
   Calendar,
   Ruler,
   Weight,
-  Activity
+  Activity,
+  Trophy,
+  Award,
+  Sun,
+  Moon,
+  Clock
 } from 'lucide-react';
 import AdventureMap from '../components/game/AdventureMap';
 import TaskSystem from '../components/game/TaskSystem';
-import { FloatingParticles, AchievementBadge } from '../components/effects/GameElements';
+import MemoryBook from '../components/game/MemoryBook';
+import GrowthPredictor from '../components/game/GrowthPredictor';
+import { FloatingParticles, AchievementBadge, LevelUpAnimation, StarCollectionAnimation, GameNotification, GameProgressRing } from '../components/effects/GameElements';
 
 export default function Journey() {
   const { user } = useContext(AppContext);
+  const { gameState, unlockArea, unlockAchievement } = useGame();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,6 +45,12 @@ export default function Journey() {
     videos: [],
     growth: [],
   });
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [showStarCollection, setShowStarCollection] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('info');
+  const [starCount, setStarCount] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -44,6 +59,50 @@ export default function Journey() {
       fetchAllData();
     }
   }, [user, router]);
+
+  // 显示游戏通知
+  const showGameNotification = (message, type = 'info') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setShowNotification(true);
+  };
+
+  // 显示星星收集动画
+  const showStars = (count) => {
+    setStarCount(count);
+    setShowStarCollection(true);
+  };
+
+  // 显示等级提升动画
+  const showLevelUpAnimation = () => {
+    setShowLevelUp(true);
+  };
+
+  // 处理区域点击
+  const handleAreaClick = (areaId) => {
+    showGameNotification(`探索 ${areaId.replace('-', ' ')}`, 'info');
+    
+    // 模拟解锁新区域
+    if (gameState.level >= 2 && !gameState.unlockedAreas.includes('star-garden')) {
+      unlockArea('star-garden');
+      showGameNotification('解锁了新区域：星星花园！', 'success');
+    }
+    
+    if (gameState.level >= 3 && !gameState.unlockedAreas.includes('treasure-island')) {
+      unlockArea('treasure-island');
+      showGameNotification('解锁了新区域：宝藏岛！', 'success');
+    }
+    
+    if (gameState.level >= 4 && !gameState.unlockedAreas.includes('rainbow-bridge')) {
+      unlockArea('rainbow-bridge');
+      showGameNotification('解锁了新区域：彩虹桥！', 'success');
+    }
+    
+    if (gameState.level >= 5 && !gameState.unlockedAreas.includes('magic-cave')) {
+      unlockArea('magic-cave');
+      showGameNotification('解锁了新区域：魔法洞穴！', 'success');
+    }
+  };
 
   const fetchAllData = async () => {
     try {
@@ -143,7 +202,7 @@ export default function Journey() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-hidden relative">
-      <TopNav user={user} onGoBack={() => router.push('/dashboard')} />
+      <TopNav user={user} onGoBack={() => router.push('/dashboard')} gameState={gameState} />
       <motion.main 
         className="container mx-auto px-4 py-8 relative z-10"
         initial={{ opacity: 0, y: 50 }}
@@ -166,13 +225,53 @@ export default function Journey() {
           </motion.div>
         </div>
         <TabNavigation tabs={tabItems} activeTab={activeTab} onTabChange={setActiveTab} />
-        <ContentArea activeTab={activeTab} data={data} user={user} />
+        <ContentArea 
+          activeTab={activeTab} 
+          data={data} 
+          user={user} 
+          gameState={gameState}
+          onAreaClick={handleAreaClick}
+          showStars={showStars}
+          showGameNotification={showGameNotification}
+        />
       </motion.main>
+      
+      {/* 游戏动画 */}
+      <AnimatePresence>
+        {showLevelUp && (
+          <LevelUpAnimation 
+            level={gameState.level} 
+            onClose={() => setShowLevelUp(false)} 
+          />
+        )}
+        {showStarCollection && (
+          <StarCollectionAnimation 
+            count={starCount} 
+            onComplete={() => setShowStarCollection(false)} 
+          />
+        )}
+        {showNotification && (
+          <GameNotification 
+            message={notificationMessage} 
+            type={notificationType} 
+            onClose={() => setShowNotification(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function TopNav({ user, onGoBack }) {
+function TopNav({ user, onGoBack, gameState }) {
+  // 计算下一级所需经验
+  const calculateNextLevelExp = (level) => {
+    return Math.pow(level, 2) * 10;
+  };
+  
+  const nextLevelExp = calculateNextLevelExp(gameState.level);
+  const currentExp = gameState.experience;
+  const expProgress = Math.min((currentExp / nextLevelExp) * 100, 100);
+  
   return (
     <nav className="relative z-20 py-4">
       <div className="container mx-auto px-4">
@@ -184,13 +283,41 @@ function TopNav({ user, onGoBack }) {
             <ChevronLeft className="w-5 h-5" />
             <span className="hidden md:inline">返回管理</span>
           </button>
-          <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg">
-              <Baby className="w-6 h-6" />
+          <div className="flex items-center space-x-6">
+            {/* 等级信息 */}
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                <Trophy className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-white font-medium text-sm">Lv.{gameState.level}</p>
+                <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${expProgress}%` }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                  />
+                </div>
+                <p className="text-white/60 text-xs">{currentExp}/{nextLevelExp} EXP</p>
+              </div>
             </div>
-            <div>
-              <p className="text-white font-medium text-sm">{user?.name || '宝贝'}</p>
-              <p className="text-white/60 text-xs">超级探险家</p>
+            
+            {/* 星星数量 */}
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center space-x-2">
+              <Star className="w-5 h-5 text-yellow-300" />
+              <span className="text-white font-bold">{gameState.stars}</span>
+            </div>
+            
+            {/* 用户信息 */}
+            <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                <Baby className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-white font-medium text-sm">{user?.name || '宝贝'}</p>
+                <p className="text-white/60 text-xs">超级探险家</p>
+              </div>
             </div>
           </div>
         </div>
@@ -240,7 +367,7 @@ function TabNavigation({ tabs, activeTab, onTabChange }) {
   );
 }
 
-function ContentArea({ activeTab, data, user }) {
+function ContentArea({ activeTab, data, user, gameState, onAreaClick, showStars, showGameNotification }) {
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -251,7 +378,16 @@ function ContentArea({ activeTab, data, user }) {
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
         <div className="relative">
-          {activeTab === 'overview' && <OverviewTab data={data} user={user} />}
+          {activeTab === 'overview' && (
+            <OverviewTab 
+              data={data} 
+              user={user} 
+              gameState={gameState}
+              onAreaClick={onAreaClick}
+              showStars={showStars}
+              showGameNotification={showGameNotification}
+            />
+          )}
           {activeTab === 'photos' && <PhotosTab photos={data.photos} />}
           {activeTab === 'diaries' && <DiariesTab diaries={data.diaries} />}
           {activeTab === 'milestones' && <MilestonesTab milestones={data.milestones} />}
@@ -263,30 +399,34 @@ function ContentArea({ activeTab, data, user }) {
   );
 }
 
-function OverviewTab({ data, user }) {
+function OverviewTab({ data, user, gameState, onAreaClick, showStars, showGameNotification }) {
   const [selectedArea, setSelectedArea] = useState(null);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  // 处理区域点击
   const handleAreaClick = (areaId) => {
     setSelectedArea(areaId);
-    // 模拟区域点击后的导航
-    if (areaId === 'memory-planet') {
-      // 导航到照片页面
-    } else if (areaId === 'story-forest') {
-      // 导航到日记页面
-    } else if (areaId === 'growth-mountain') {
-      // 导航到里程碑页面
-    } else if (areaId === 'happy-river') {
-      // 导航到视频页面
-    }
+    onAreaClick(areaId);
   };
 
   // 成就数据
   const achievements = [
-    { id: 1, title: '摄影新手', icon: '📸', unlocked: true, progress: 100 },
-    { id: 2, title: '故事讲述者', icon: '📚', unlocked: true, progress: 100 },
-    { id: 3, title: '里程碑达人', icon: '⭐', unlocked: false, progress: 0 },
-    { id: 4, title: '视频大师', icon: '🎥', unlocked: false, progress: 0 },
+    { id: 1, title: '摄影新手', icon: '📸', unlocked: gameState.achievements.some(a => a.id === 1) || data.photos.length > 0, progress: Math.min((data.photos.length / 5) * 100, 100) },
+    { id: 2, title: '故事讲述者', icon: '📚', unlocked: gameState.achievements.some(a => a.id === 2) || data.diaries.length > 0, progress: Math.min((data.diaries.length / 3) * 100, 100) },
+    { id: 3, title: '里程碑达人', icon: '⭐', unlocked: gameState.achievements.some(a => a.id === 3) || data.milestones.length > 0, progress: Math.min((data.milestones.length / 2) * 100, 100) },
+    { id: 4, title: '视频大师', icon: '🎥', unlocked: gameState.achievements.some(a => a.id === 4) || data.videos.length > 0, progress: Math.min((data.videos.length / 2) * 100, 100) },
+    { id: 5, title: '成长记录员', icon: '📏', unlocked: gameState.achievements.some(a => a.id === 5) || data.growth.length > 0, progress: Math.min((data.growth.length / 3) * 100, 100) },
+    { id: 6, title: '冒险王', icon: '🏆', unlocked: gameState.achievements.some(a => a.id === 6) || gameState.level >= 5, progress: Math.min((gameState.level / 5) * 100, 100) },
+  ];
+
+  // 模拟排行榜数据
+  const leaderboardData = [
+    { rank: 1, name: '小明妈妈', level: 12, stars: 156 },
+    { rank: 2, name: '小红爸爸', level: 10, stars: 128 },
+    { rank: 3, name: '小宝妈妈', level: 8, stars: 95 },
+    { rank: 4, name: '小贝爸爸', level: 7, stars: 87 },
+    { rank: 5, name: user?.name || '你', level: gameState.level, stars: gameState.stars },
   ];
 
   return (
@@ -325,17 +465,25 @@ function OverviewTab({ data, user }) {
           <h2 className="text-2xl font-bold text-white flex items-center">
             🏆 成就系统
           </h2>
-          <button
-            onClick={() => setShowAchievements(!showAchievements)}
-            className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-all duration-300"
-          >
-            {showAchievements ? '收起' : '查看成就'}
-          </button>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowAchievements(!showAchievements)}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-all duration-300"
+            >
+              {showAchievements ? '收起' : '查看成就'}
+            </button>
+            <button
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-full transition-all duration-300"
+            >
+              {showLeaderboard ? '收起' : '排行榜'}
+            </button>
+          </div>
         </div>
         
         {showAchievements && (
           <motion.div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -347,6 +495,7 @@ function OverviewTab({ data, user }) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
+                whileHover={{ y: -5 }}
               >
                 <AchievementBadge 
                   title={achievement.title}
@@ -355,8 +504,48 @@ function OverviewTab({ data, user }) {
                   progress={achievement.progress}
                 />
                 <p className="text-white text-xs mt-2 text-center">{achievement.title}</p>
+                <p className="text-white/60 text-xs">{achievement.progress}%</p>
               </motion.div>
             ))}
+          </motion.div>
+        )}
+        
+        {showLeaderboard && (
+          <motion.div
+            className="bg-white/8 rounded-2xl p-4 md:p-6 border border-white/15"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+              <Award className="w-5 h-5 mr-2" /> 冒险家排行榜
+            </h3>
+            <div className="space-y-3">
+              {leaderboardData.map((item, index) => (
+                <motion.div
+                  key={index}
+                  className={`flex items-center justify-between p-3 rounded-xl ${item.name === (user?.name || '你') ? 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30' : 'bg-white/5 border border-white/10'}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.4 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${index < 3 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' : 'bg-white/20 text-white'}`}>
+                      {item.rank}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{item.name}</p>
+                      <p className="text-white/60 text-xs">Lv.{item.level}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Star className="w-4 h-4 text-yellow-300" />
+                    <span className="text-white font-bold">{item.stars}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
       </motion.div>
@@ -416,6 +605,30 @@ function OverviewTab({ data, user }) {
             <div className="text-3xl">🎥</div>
           </div>
         </motion.div>
+      </motion.div>
+
+      {/* 成长纪念册 */}
+      <motion.div
+        className="bg-white/12 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/25 shadow-2xl"
+        initial={{ opacity: 0, y: 25, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 1.2, duration: 0.65, type: 'spring' }}
+      >
+        <MemoryBook 
+          photos={data.photos} 
+          diaries={data.diaries} 
+          milestones={data.milestones} 
+        />
+      </motion.div>
+
+      {/* 成长预测 */}
+      <motion.div
+        className="bg-white/12 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/25 shadow-2xl"
+        initial={{ opacity: 0, y: 25, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 1.5, duration: 0.65, type: 'spring' }}
+      >
+        <GrowthPredictor growth={data.growth} />
       </motion.div>
     </div>
   );
