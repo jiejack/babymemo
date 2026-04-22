@@ -7,6 +7,7 @@ export default function Navbar() {
   const router = useRouter();
 
   const navItems = [
+    { name: '首页', path: '/dashboard' },
     { name: '照片墙', path: '/photos' },
     { name: '创意日记', path: '/diaries' },
     { name: '创意日历', path: '/calendar' },
@@ -21,13 +22,17 @@ export default function Navbar() {
     logout();
   };
 
+  const navigateTo = (path) => {
+    router.push(path);
+  };
+
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-blue-500">BabyMemo</h1>
+            <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigateTo('/dashboard')}>
+              <h1 className="text-xl font-bold text-blue-500 hover:text-blue-700 transition-colors">BabyMemo</h1>
             </div>
             <div className="hidden md:block ml-10">
               <div className="flex items-baseline space-x-4">
@@ -35,6 +40,10 @@ export default function Navbar() {
                   <a
                     key={item.path}
                     href={item.path}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigateTo(item.path);
+                    }}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${router.pathname === item.path ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
                   >
                     {item.name}
@@ -63,6 +72,10 @@ export default function Navbar() {
             <a
               key={item.path}
               href={item.path}
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo(item.path);
+              }}
               className={`block px-3 py-2 rounded-md text-base font-medium ${router.pathname === item.path ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
             >
               {item.name}

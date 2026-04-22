@@ -1,61 +1,45 @@
-const db = require('../database/connection');
+import { query, get, run } from '../database/utils.js';
 
-class Setting {
-  static async get(key) {
-    const sql = 'SELECT * FROM settings WHERE key = ?';
-    return new Promise((resolve, reject) => {
-      db.get(sql, [key], (err, row) => {
-        if (err) reject(err);
-        else resolve(row ? row.value : null);
-      });
-    });
-  }
-
-  static async getAll() {
-    const sql = 'SELECT * FROM settings';
-    return new Promise((resolve, reject) => {
-      db.all(sql, (err, rows) => {
-        if (err) reject(err);
-        else {
-          const settings = {};
-          rows.forEach(row => {
-            settings[row.key] = row.value;
-          });
-          resolve(settings);
-        }
-      });
-    });
-  }
-
-  static async set(key, value) {
-    const sql = 'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [key, value], function(err) {
-        if (err) reject(err);
-        else resolve({ key, value });
-      });
-    });
-  }
-
-  static async delete(key) {
-    const sql = 'DELETE FROM settings WHERE key = ?';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [key], function(err) {
-        if (err) reject(err);
-        else resolve({ key });
-      });
-    });
-  }
-
-  static async findAll() {
-    const sql = 'SELECT * FROM settings';
-    return new Promise((resolve, reject) => {
-      db.all(sql, [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  }
+export async function get(key) {
+  const sql = 'SELECT * FROM settings WHERE key = ?';
+  const row = await get(sql, [key]);
+  return row ? row.value : null;
 }
 
-module.exports = Setting;
+export async function getAll() {
+  const sql = 'SELECT * FROM settings';
+  const rows = await query(sql);
+  const settings = {};
+  rows.forEach(row => {
+    settings[row.key] = row.value;
+  });
+  return settings;
+}
+
+export async function set(key, value) {
+  const sql = 'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)';
+  await run(sql, [key, value]);
+  return { key, value };
+}
+
+export async function del(key) {
+  const sql = 'DELETE FROM settings WHERE key = ?';
+  await run(sql, [key]);
+  return { key };
+}
+
+export async function findAll() {
+  const sql = 'SELECT * FROM settings';
+  return await query(sql);
+}
+
+export async function findByKey(key) {
+  const sql = 'SELECT * FROM settings WHERE key = ?';
+  return await get(sql, [key]);
+}
+
+export async function upsert(key, value) {
+  const sql = 'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)';
+  await run(sql, [key, value]);
+  return { key, value };
+}

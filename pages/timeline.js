@@ -1,24 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
+import MilestoneForm from '../components/timeline/MilestoneForm';
+import { api } from '../services/api';
 
 export default function Timeline() {
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingMilestone, setEditingMilestone] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    setLoading(false);
+    fetchMilestones();
   }, []);
 
-  const handleAddDemoMilestone = () => {
-    const newMilestone = {
-      id: Date.now(),
-      title: '演示里程碑',
-      date: new Date().toISOString(),
-      description: '这是一个演示的里程碑事件',
-      type: '成长',
-      image: ''
+  const fetchMilestones = async () => {
+    try {
+      setLoading(true);
+      const response = await api.milestone.getAll();
+      if (response.status === 'success' && response.data) {
+        setMilestones(response.data.sort((a, b) => {
+          const dateDiff = new Date(b.date) - new Date(a.date);
+          if (dateDiff !== 0) {
+            return dateDiff;
+          }
+          return new Date(b.created_at) - new Date(a.created_at);
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching milestones:', error);
+      setError('获取里程碑失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddMilestone = () => {
+    setIsAdding(true);
+    setEditingMilestone(null);
+    setShowModal(true);
+  };
+
+  const handleEditMilestone = (milestone) => {
+    setIsAdding(false);
+    setEditingMilestone(milestone);
+    setShowModal(true);
+  };
+
+  const handleDeleteMilestone = async (id) => {
+    try {
+      const response = await api.milestone.delete(id);
+      if (response.status === 'success') {
+        setMilestones(prev => prev.filter(milestone => milestone.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting milestone:', error);
+      setError('删除里程碑失败');
+    }
+  };
+
+  const handleSaveMilestone = (milestone) => {
+    const sortMilestones = (list) => {
+      return list.sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) {
+          return dateDiff;
+        }
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
     };
-    setMilestones(prev => [newMilestone, ...prev].sort((a, b) => new Date(b.date) - new Date(a.date)));
+
+    if (isAdding) {
+      // 添加新里程碑
+      setMilestones(prev => sortMilestones([milestone, ...prev]));
+    } else {
+      // 更新现有里程碑
+      setMilestones(prev => {
+        const updated = prev.map(m => m.id === milestone.id ? milestone : m);
+        return sortMilestones(updated);
+      });
+    }
   };
 
   if (loading) {
@@ -37,10 +99,10 @@ export default function Timeline() {
         <h1 className="text-2xl font-bold text-gray-800 mb-4">时光轴</h1>
         <div className="flex justify-end mb-4">
           <button 
-            onClick={handleAddDemoMilestone}
+            onClick={handleAddMilestone}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           >
-            添加演示里程碑
+            添加里程碑
           </button>
         </div>
       </div>
@@ -77,8 +139,18 @@ export default function Timeline() {
                         </div>
                       )}
                       <div className="mt-4 flex space-x-2">
-                        <button className="text-blue-500 hover:text-blue-700 text-sm">编辑</button>
-                        <button className="text-red-500 hover:text-red-700 text-sm">删除</button>
+                        <button 
+                          onClick={() => handleEditMilestone(milestone)}
+                          className="text-blue-500 hover:text-blue-700 text-sm"
+                        >
+                          编辑
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteMilestone(milestone.id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          删除
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -90,6 +162,19 @@ export default function Timeline() {
           )}
         </div>
       </div>
+
+      {/* 里程碑表单模态框 */}
+      {showModal && (
+        <MilestoneForm
+          milestone={editingMilestone}
+          onSave={handleSaveMilestone}
+          onClose={() => {
+            setShowModal(false);
+            setEditingMilestone(null);
+            setIsAdding(false);
+          }}
+        />
+      )}
     </Layout>
   );
 }

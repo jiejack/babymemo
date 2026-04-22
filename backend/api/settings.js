@@ -1,7 +1,6 @@
-const Setting = require('../models/setting');
-const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import jwt from 'jsonwebtoken';
+import { findByKey, findAll, upsert } from '../models/setting.js';
+import { getUserIdFromToken } from '../../services/auth.js';
 
 export default function handler(req, res) {
   const { method } = req;
@@ -19,46 +18,45 @@ export default function handler(req, res) {
 
 async function getSettings(req, res) {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ status: 'error', message: 'No token provided' });
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
-
-    jwt.verify(token, JWT_SECRET);
     
     const { key } = req.query;
     let settings;
     
     if (key) {
-      settings = await Setting.findByKey(key);
+      settings = await findByKey(key);
     } else {
-      settings = await Setting.findAll();
+      settings = await findAll();
     }
 
     res.status(200).json({ status: 'success', data: settings });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Get settings error:', error);
+    res.status(500).json({ status: 'error', message: error.message || 'Internal server error' });
   }
 }
 
 async function updateSetting(req, res) {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ status: 'error', message: 'No token provided' });
+    const userId = getUserIdFromToken(req);
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
-
-    jwt.verify(token, JWT_SECRET);
+    
     const { key, value } = req.body;
 
     if (!key || value === undefined) {
       return res.status(400).json({ status: 'error', message: 'Key and value are required' });
     }
 
-    const setting = await Setting.upsert(key, value);
+    const setting = await upsert(key, value);
 
     res.status(200).json({ status: 'success', message: 'Setting updated successfully', data: setting });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Update setting error:', error);
+    res.status(500).json({ status: 'error', message: error.message || 'Internal server error' });
   }
 }

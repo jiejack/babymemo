@@ -14,6 +14,13 @@ module.exports = {
         sky: '#A7DBD8',
         peach: '#FFDAB9',
         cream: '#FFF8F0',
+        'yellow-400': '#FACC15',
+        'orange-500': '#F97316',
+        'purple-600': '#9333EA',
+        'pink-500': '#EC4899',
+        'blue-500': '#3B82F6',
+        'cyan-400': '#22D3EE',
+        'teal-400': '#2DD4BF',
       },
       fontFamily: {
         quicksand: ['Quicksand', 'sans-serif'],

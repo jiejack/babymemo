@@ -1,9 +1,16 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+import sqlite3 from 'sqlite3';
+import bcrypt from 'bcryptjs';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// 获取当前文件的路径
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // 使用绝对路径确保能找到数据库文件
-const dbPath = path.resolve(process.cwd(), 'data.db');
+const dbPath = resolve(__dirname, '../../data.db');
 console.log('Database path:', dbPath);
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);
@@ -45,6 +52,8 @@ function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS photos (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      baby_id TEXT,
       url TEXT NOT NULL,
       title TEXT,
       description TEXT,
@@ -61,6 +70,8 @@ function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS diaries (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      baby_id TEXT,
       title TEXT NOT NULL,
       content TEXT NOT NULL,
       images TEXT,
@@ -78,6 +89,8 @@ function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS events (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      baby_id TEXT,
       title TEXT NOT NULL,
       description TEXT,
       date DATETIME NOT NULL,
@@ -94,6 +107,8 @@ function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS milestones (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      baby_id TEXT,
       title TEXT NOT NULL,
       description TEXT,
       date DATETIME NOT NULL,
@@ -123,6 +138,8 @@ function initDatabase() {
   db.run(`
     CREATE TABLE IF NOT EXISTS videos (
       id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      baby_id TEXT,
       url TEXT NOT NULL,
       title TEXT,
       description TEXT,
@@ -145,6 +162,24 @@ function initDatabase() {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // 插入演示用户
+  bcrypt.hash('demo', 10, (err, hashedPassword) => {
+    if (err) {
+      console.error('Error hashing password:', err);
+    } else {
+      db.run(`
+        INSERT OR IGNORE INTO users (id, username, password, name, avatar)
+        VALUES ('demo-user-id', 'demo', ?, '演示用户', null)
+      `, [hashedPassword], (err) => {
+        if (err) {
+          console.error('Error inserting demo user:', err);
+        } else {
+          console.log('Demo user inserted successfully');
+        }
+      });
+    }
+  });
 }
 
-module.exports = db;
+export default db;

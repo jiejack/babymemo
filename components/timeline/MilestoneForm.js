@@ -1,14 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 
 export default function MilestoneForm({ onSave, onClose, milestone = null }) {
-  const [title, setTitle] = useState(milestone?.title || '');
-  const [description, setDescription] = useState(milestone?.description || '');
-  const [date, setDate] = useState(milestone?.date ? new Date(milestone.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
-  const [type, setType] = useState(milestone?.type || '');
-  const [tags, setTags] = useState(milestone?.tags ? milestone.tags.join(', ') : '');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [type, setType] = useState('');
+  const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // 当milestone属性变化时，更新表单状态
+  useEffect(() => {
+    if (milestone) {
+      setTitle(milestone.title || '');
+      setDescription(milestone.description || '');
+      setDate(milestone.date ? new Date(milestone.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+      setType(milestone.type || '');
+      if (milestone.tags) {
+        if (Array.isArray(milestone.tags)) {
+          setTags(milestone.tags.join(', '));
+        } else if (typeof milestone.tags === 'string') {
+          setTags(milestone.tags);
+        }
+      } else {
+        setTags('');
+      }
+    } else {
+      // 重置表单
+      setTitle('');
+      setDescription('');
+      setDate(new Date().toISOString().split('T')[0]);
+      setType('');
+      setTags('');
+    }
+  }, [milestone]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,8 +47,8 @@ export default function MilestoneForm({ onSave, onClose, milestone = null }) {
         description,
         date,
         type,
-        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
-        images: [] // 暂时不支持图片上传
+        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '').join(','),
+        images: '' // 暂时不支持图片上传，传递空字符串
       };
 
       let response;
@@ -70,7 +96,7 @@ export default function MilestoneForm({ onSave, onClose, milestone = null }) {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-              标题
+              标题 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"

@@ -1,76 +1,48 @@
-const db = require('../database/connection');
-const { v4: uuidv4 } = require('uuid');
+import db from '../database/connection.js';
+import { get, run, query } from '../database/utils.js';
+import { v4 as uuidv4 } from 'uuid';
 
-class Event {
-  static async create(title, description, date, type, color, reminder, repeat) {
-    const id = uuidv4();
-    const sql = 'INSERT INTO events (id, title, description, date, type, color, reminder, repeat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [id, title, description, date, type, color, reminder, repeat], function(err) {
-        if (err) reject(err);
-        else resolve({ id, title, description, date, type, color, reminder, repeat });
-      });
-    });
-  }
-
-  static async findById(id) {
-    const sql = 'SELECT * FROM events WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.get(sql, [id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  }
-
-  static async findAll(startDate = null, endDate = null, type = null) {
-    let sql = 'SELECT * FROM events WHERE 1=1';
-    const params = [];
-
-    if (type) {
-      sql += ' AND type = ?';
-      params.push(type);
-    }
-
-    if (startDate) {
-      sql += ' AND date >= ?';
-      params.push(startDate);
-    }
-
-    if (endDate) {
-      sql += ' AND date <= ?';
-      params.push(endDate);
-    }
-
-    sql += ' ORDER BY date ASC';
-
-    return new Promise((resolve, reject) => {
-      db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  }
-
-  static async update(id, data) {
-    const sql = 'UPDATE events SET title = ?, description = ?, date = ?, type = ?, color = ?, reminder = ?, repeat = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [data.title, data.description, data.date, data.type, data.color, data.reminder, data.repeat, id], function(err) {
-        if (err) reject(err);
-        else resolve({ id, ...data });
-      });
-    });
-  }
-
-  static async delete(id) {
-    const sql = 'DELETE FROM events WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [id], function(err) {
-        if (err) reject(err);
-        else resolve({ id });
-      });
-    });
-  }
+export async function createEvent(eventData) {
+  const { user_id, baby_id, title, description, date, type, color, reminder, repeat } = eventData;
+  const id = uuidv4();
+  const sql = 'INSERT INTO events (id, user_id, baby_id, title, description, date, type, color, reminder, repeat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  await run(db, sql, [id, user_id, baby_id, title, description, date, type, color, reminder || 0, repeat]);
+  return { id, user_id, baby_id, title, description, date, type, color, reminder, repeat };
 }
 
-module.exports = Event;
+export async function getEventById(id) {
+  const sql = 'SELECT * FROM events WHERE id = ?';
+  return await get(db, sql, [id]);
+}
+
+export async function getEvents({ user_id, start_date, end_date }) {
+  let sql = 'SELECT * FROM events WHERE user_id = ?';
+  const params = [user_id];
+
+  if (start_date) {
+    sql += ' AND date >= ?';
+    params.push(start_date);
+  }
+
+  if (end_date) {
+    sql += ' AND date <= ?';
+    params.push(end_date);
+  }
+
+  sql += ' ORDER BY date ASC';
+
+  return await query(db, sql, params);
+}
+
+export async function updateEvent(id, eventData) {
+  const { title, description, date, type, color, reminder, repeat } = eventData;
+  const sql = 'UPDATE events SET title = ?, description = ?, date = ?, type = ?, color = ?, reminder = ?, repeat = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+  await run(db, sql, [title, description, date, type, color, reminder || 0, repeat, id]);
+  return { id, ...eventData };
+}
+
+export async function deleteEvent(id) {
+  const sql = 'DELETE FROM events WHERE id = ?';
+  await run(db, sql, [id]);
+  return { id };
+}

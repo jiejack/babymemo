@@ -7,7 +7,7 @@ export const AppContext = React.createContext();
 
 function MyApp({ Component, pageProps }) {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(typeof window === 'undefined' ? false : true);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   // 检查用户登录状态
@@ -123,7 +123,7 @@ function MyApp({ Component, pageProps }) {
       return; // 还在加载中，不执行路由保护
     }
     
-    const protectedRoutes = ['/dashboard', '/photos', '/diaries', '/calendar', '/timeline', '/babies', '/growth', '/videos', '/settings'];
+    const protectedRoutes = ['/dashboard', '/photos', '/diaries', '/calendar', '/timeline', '/babies', '/growth', '/videos', '/settings', '/journey'];
     const currentPath = router.pathname;
 
     if (!user && protectedRoutes.some(route => currentPath.startsWith(route))) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/common/Layout';
+import { api } from '../services/api';
 
 export default function Calendar() {
   const [events, setEvents] = useState([]);
@@ -8,17 +9,39 @@ export default function Calendar() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    setLoading(false);
+    fetchEvents();
   }, []);
 
-  const handleAddDemoEvent = () => {
-    const newEvent = {
-      id: Date.now(),
-      title: '演示事件',
-      date: new Date().toISOString(),
-      color: '#3b82f6'
-    };
-    setEvents(prev => [...prev, newEvent]);
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.event.getAll();
+      if (response.status === 'success' && response.data) {
+        setEvents(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddDemoEvent = async () => {
+    try {
+      const newEvent = {
+        title: '演示事件',
+        description: '这是一个演示事件',
+        date: new Date().toISOString(),
+        type: '重要',
+        color: '#3b82f6'
+      };
+      const response = await api.event.create(newEvent);
+      if (response.status === 'success' && response.data) {
+        setEvents(prev => [...prev, response.data]);
+      }
+    } catch (error) {
+      console.error('Error adding event:', error);
+    }
   };
 
   // 生成日历数据

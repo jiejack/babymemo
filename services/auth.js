@@ -1,5 +1,8 @@
 // 认证服务
 import { api } from './api';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 const authService = {
   // 登录
@@ -91,5 +94,26 @@ const authService = {
     }
   }
 };
+
+// 从请求中获取用户ID
+export function getUserIdFromToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return null;
+  }
+  
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return null;
+  }
+  
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded.id;
+  } catch (error) {
+    console.error('Token verification error:', error);
+    return null;
+  }
+}
 
 export default authService;

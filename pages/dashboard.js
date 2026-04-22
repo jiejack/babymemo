@@ -2,35 +2,51 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { AppContext } from './_app';
 import Layout from '../components/common/Layout';
+import { api } from '../services/api';
 
 export default function Dashboard() {
   const { user } = useContext(AppContext);
   const router = useRouter();
-  const [recentPhotos, setRecentPhotos] = useState([
-    { id: 1, title: '宝宝第一次笑', url: 'https://via.placeholder.com/200', date: '2024-02-20' },
-    { id: 2, title: '学翻身', url: 'https://via.placeholder.com/200', date: '2024-03-10' },
-    { id: 3, title: '吃辅食', url: 'https://via.placeholder.com/200', date: '2024-04-05' },
-    { id: 4, title: '公园游玩', url: 'https://via.placeholder.com/200', date: '2024-04-15' },
-    { id: 5, title: '生日派对', url: 'https://via.placeholder.com/200', date: '2024-05-01' },
-    { id: 6, title: '亲子时光', url: 'https://via.placeholder.com/200', date: '2024-05-10' }
-  ]);
-  const [recentDiaries, setRecentDiaries] = useState([
-    { id: 1, title: '宝宝会叫妈妈了', content: '今天宝宝第一次清晰地叫了妈妈，我激动得哭了。这是最美好的声音。', date: '2024-05-15', mood: '开心' },
-    { id: 2, title: '第一次爬', content: '宝宝今天终于会爬了，虽然只是一点点距离，但这是成长的重要一步。', date: '2024-05-10', mood: '兴奋' },
-    { id: 3, title: '睡眠改善', content: '最近宝宝的睡眠质量好多了，晚上只醒一次，我也能多睡会儿了。', date: '2024-05-05', mood: '平静' }
-  ]);
-  const [recentMilestones, setRecentMilestones] = useState([
-    { id: 1, title: '第一次翻身', description: '宝宝在5个月零2天的时候成功翻身了！', date: '2024-03-10', type: '运动' },
-    { id: 2, title: '出牙', description: '宝宝的第一颗乳牙冒出来了，小小的白点点。', date: '2024-04-20', type: '发育' },
-    { id: 3, title: '会坐', description: '宝宝可以独立坐着了，不用支撑能坐好几分钟。', date: '2024-05-01', type: '运动' }
-  ]);
-  const [loading, setLoading] = useState(false);
+  const [recentPhotos, setRecentPhotos] = useState([]);
+  const [recentDiaries, setRecentDiaries] = useState([]);
+  const [recentMilestones, setRecentMilestones] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       router.push('/');
+    } else {
+      fetchData();
     }
   }, [user, router]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // 获取最近照片
+      const photosResponse = await api.photo.getAll({ limit: 6 });
+      setRecentPhotos(photosResponse.data || []);
+      
+      // 获取最近日记
+      const diariesResponse = await api.diary.getAll();
+      const sortedDiaries = (diariesResponse.data || []).sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+      ).slice(0, 3);
+      setRecentDiaries(sortedDiaries);
+      
+      // 获取最近里程碑
+      const milestonesResponse = await api.milestone.getAll();
+      const sortedMilestones = (milestonesResponse.data || []).sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+      ).slice(0, 3);
+      setRecentMilestones(sortedMilestones);
+    } catch (error) {
+      console.error('Fetch data error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -56,6 +72,12 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex space-x-4">
+            <button 
+              onClick={() => router.push('/journey')}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-105"
+            >
+              🚀 进入冒险世界
+            </button>
             <button 
               onClick={() => router.push('/photos')}
               className="btn-primary"

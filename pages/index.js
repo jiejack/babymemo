@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
 import { AppContext } from './_app';
+import { api } from '../services/api';
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,23 +20,23 @@ export default function Home() {
     setLoading(true);
 
     try {
-      // 模拟登录/注册，不依赖后端API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      let response;
+      if (isLogin) {
+        // 登录
+        response = await api.user.login({ username, password });
+      } else {
+        // 注册
+        response = await api.user.register({ username, password, name });
+      }
       
-      const mockUser = {
-        id: 1,
-        username: username,
-        name: name || username,
-        avatar: null
-      };
-      
-      const mockToken = 'mock-token-' + Date.now();
-      
-      login(mockUser, mockToken);
-      // 移除手动导航，让路由保护来处理导航
-      // router.push('/dashboard');
+      if (response.status === 'success' && response.data) {
+        const { user, token } = response.data;
+        login(user, token);
+      } else {
+        setError(response.message || '操作失败');
+      }
     } catch (error) {
-      setError('服务器错误，请稍后再试');
+      setError(error.message || '服务器错误，请稍后再试');
       console.error('Auth error:', error);
     } finally {
       setLoading(false);

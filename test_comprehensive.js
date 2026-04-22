@@ -69,8 +69,9 @@ function testApiRegister() {
   console.log('\n=== 测试2: Web API连接测试 - 注册 ===');
   
   return new Promise((resolve, reject) => {
+    const username = `testuser_${Date.now()}`;
     const postData = JSON.stringify({
-      username: `testuser_${Date.now()}`,
+      username: username,
       password: 'password123',
       name: '测试用户'
     });
@@ -99,7 +100,7 @@ function testApiRegister() {
         try {
           const response = JSON.parse(data);
           console.log('✅ 响应数据:', JSON.stringify(response, null, 2));
-          resolve();
+          resolve({ username: username, password: 'password123' });
         } catch (e) {
           console.error('❌ 响应解析失败:', e.message);
           console.error('响应原始数据:', data);
@@ -126,12 +127,12 @@ function testApiRegister() {
 }
 
 // 测试3: Web API连接测试 - 登录
-function testApiLogin() {
+function testApiLogin(username) {
   console.log('\n=== 测试3: Web API连接测试 - 登录 ===');
   
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({
-      username: 'testuser123',
+      username: username,
       password: 'password123'
     });
     
@@ -159,7 +160,11 @@ function testApiLogin() {
         try {
           const response = JSON.parse(data);
           console.log('✅ 响应数据:', JSON.stringify(response, null, 2));
-          resolve(response.token); // 返回token用于后续测试
+          if (response.status === 'success' && response.data && response.data.token) {
+            resolve(response.data.token); // 返回token用于后续测试
+          } else {
+            reject(new Error('Login failed: no token returned'));
+          }
         } catch (e) {
           console.error('❌ 响应解析失败:', e.message);
           console.error('响应原始数据:', data);
@@ -196,10 +201,14 @@ function testApiGetCurrentUser(token) {
       path: '/api/users/me',
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
       timeout: 20000 // 20秒超时
     };
+    
+    console.log('发送请求到:', options.path);
+    console.log('Authorization header:', options.headers.Authorization.substring(0, 20) + '...');
     
     const req = http.request(options, (res) => {
       console.log(`✅ 响应状态码: ${res.statusCode}`);
@@ -247,11 +256,11 @@ async function runAllTests() {
     console.log('\n--- 测试1 完成 ---\n');
     
     // 测试2: API注册
-    await testApiRegister();
+    const registeredUser = await testApiRegister();
     console.log('\n--- 测试2 完成 ---\n');
     
     // 测试3: API登录
-    const token = await testApiLogin();
+    const token = await testApiLogin(registeredUser.username);
     console.log('\n--- 测试3 完成 ---\n');
     
     // 测试4: API获取当前用户信息

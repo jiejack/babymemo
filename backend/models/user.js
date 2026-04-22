@@ -1,67 +1,41 @@
-const db = require('../database/connection');
-const { v4: uuidv4 } = require('uuid');
+import { get, run, query } from '../database/utils.mjs';
+import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
-class User {
-  static async create(username, password, name, avatar) {
-    const id = uuidv4();
-    const sql = 'INSERT INTO users (id, username, password, name, avatar) VALUES (?, ?, ?, ?, ?)';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [id, username, password, name, avatar], function(err) {
-        if (err) reject(err);
-        else resolve({ id, username, name, avatar });
-      });
-    });
-  }
-
-  static async findByUsername(username) {
-    const sql = 'SELECT * FROM users WHERE username = ?';
-    return new Promise((resolve, reject) => {
-      db.get(sql, [username], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  }
-
-  static async findById(id) {
-    const sql = 'SELECT * FROM users WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.get(sql, [id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  }
-
-  static async update(id, data) {
-    const sql = 'UPDATE users SET name = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [data.name, data.avatar, id], function(err) {
-        if (err) reject(err);
-        else resolve({ id, ...data });
-      });
-    });
-  }
-
-  static async updatePassword(id, password) {
-    const sql = 'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
-    return new Promise((resolve, reject) => {
-      db.run(sql, [password, id], function(err) {
-        if (err) reject(err);
-        else resolve({ id });
-      });
-    });
-  }
-
-  static async findAll() {
-    const sql = 'SELECT * FROM users';
-    return new Promise((resolve, reject) => {
-      db.all(sql, [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  }
+export async function createUser(userData) {
+  const { username, password, name, avatar } = userData;
+  const id = uuidv4();
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const sql = 'INSERT INTO users (id, username, password, name, avatar) VALUES (?, ?, ?, ?, ?)';
+  await run(sql, [id, username, hashedPassword, name, avatar]);
+  return { id, username, name, avatar };
 }
 
-module.exports = User;
+export async function getUserByUsername(username) {
+  const sql = 'SELECT * FROM users WHERE username = ?';
+  return await get(sql, [username]);
+}
+
+export async function getUserById(id) {
+  const sql = 'SELECT * FROM users WHERE id = ?';
+  return await get(sql, [id]);
+}
+
+export async function updateUser(id, userData) {
+  const { name, avatar } = userData;
+  const sql = 'UPDATE users SET name = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+  await run(sql, [name, avatar, id]);
+  return { id, ...userData };
+}
+
+export async function updateUserPassword(id, password) {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const sql = 'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+  await run(sql, [hashedPassword, id]);
+  return { id };
+}
+
+export async function getAllUsers() {
+  const sql = 'SELECT * FROM users';
+  return await query(sql, []);
+}
